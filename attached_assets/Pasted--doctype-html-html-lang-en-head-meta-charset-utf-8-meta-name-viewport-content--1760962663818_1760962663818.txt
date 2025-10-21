@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>InnerWords — Minimal Prototype</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #171922;
+      --muted: #8a90a2;
+      --text: #e8ecf1;
+      --accent: #7dd3fc;
+      --good: #22c55e;
+      --bad: #ef4444;
+      --warn: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif;
+      display: grid; place-items: center; min-height: 100vh; padding: 24px;
+    }
+    .app {
+      width: 100%; max-width: 680px; background: var(--panel);
+      border: 1px solid #25293a; border-radius: 14px; padding: 22px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      margin-bottom: 18px;
+    }
+    h1 { font-size: 18px; margin: 0; letter-spacing: .3px; color: var(--muted); }
+    .score {
+      background: #0f1220; border: 1px solid #2a2f45; padding: 8px 12px;
+      border-radius: 10px; font-weight: 700;
+    }
+    .current-word {
+      font-size: 36px; font-weight: 800; letter-spacing: 2px; text-align: center;
+      padding: 14px 12px; border-radius: 12px; background: #111423; margin-bottom: 10px;
+    }
+    .hint { color: var(--muted); font-size: 13px; text-align: center; margin-bottom: 14px; }
+    .row { display: grid; grid-template-columns: 1fr 2fr auto; gap: 10px; margin: 8px 0; }
+    label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    input {
+      width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #2a2f45;
+      background: #0f1220; color: var(--text); outline: none;
+    }
+    input::placeholder { color: #5c6380; }
+    .btn {
+      padding: 12px 14px; border-radius: 10px; border: 1px solid #2a2f45;
+      background: #0f1220; color: var(--text); cursor: pointer; font-weight: 700;
+    }
+    .btn:hover { border-color: #3a4061; }
+    .btn.primary { background: #0b1220; border-color: #35507c; }
+    .btn.primary:hover { background: #0e1628; }
+    .msg { min-height: 22px; font-size: 13px; margin-top: 8px; }
+    .msg.ok { color: var(--good); }
+    .msg.err { color: var(--bad); }
+    .log {
+      margin-top: 18px; border-top: 1px solid #262a3f; padding-top: 12px;
+      max-height: 240px; overflow: auto;
+    }
+    .log h3 { margin: 0 0 8px 0; font-size: 14px; color: var(--muted); }
+    .turn {
+      display: grid; grid-template-columns: 70px 1fr 110px; gap: 10px;
+      padding: 8px; border: 1px solid #242841; border-radius: 10px; margin-bottom: 8px;
+      background: #0e1120;
+    }
+    .pill { font-size: 12px; color: #cbd5e1; padding: 2px 8px; border-radius: 999px; border: 1px solid #2b3150; }
+    .pill.inner { border-color: #195b38; color: #b6f3c9; }
+    .pill.edge { border-color: #5b4a19; color: #ffe9a6; }
+    .footer {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+      margin-top: 14px;
+    }
+    .small { color: var(--muted); font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>InnerWords — Minimal Prototype</h1>
+      <div class="score">Score: <span id="score">0</span></div>
+    </header>
+
+    <div class="current-word" id="currentWord">CORIANDER</div>
+    <div class="hint">Pick a contiguous sequence from the word above. You may add letters only to the <em>start</em> and/or <em>end</em> of that sequence in your new word.</div>
+
+    <div>
+      <div class="row">
+        <div>
+          <label for="seq">Sequence (contiguous)</label>
+          <input id="seq" placeholder="e.g. RIA" maxlength="20" />
+        </div>
+        <div>
+          <label for="newWord">New word (must contain the exact sequence block)</label>
+          <input id="newWord" placeholder="e.g. B R I A N ??? → BRIAN? (just example)" maxlength="40" />
+        </div>
+        <button class="btn primary" id="submitBtn">Submit Move</button>
+      </div>
+      <div class="footer">
+        <div class="small">Scoring: Inner = 2/letter, Edge = 1/letter, Bonus = +1 per extra letter if the new word is longer than the previous word.</div>
+        <button class="btn" id="resetBtn">Reset</button>
+      </div>
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <div class="log">
+      <h3>Turn Log</h3>
+      <div id="log"></div>
+    </div>
+  </div>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+
+    let currentWord = "CORIANDER";
+    let score = 0;
+    let prevWordLen = currentWord.length;
+
+    const currentWordEl = el('currentWord');
+    const scoreEl = el('score');
+    const msgEl = el('msg');
+    const logEl = el('log');
+    const seqInput = el('seq');
+    const newWordInput = el('newWord');
+    const submitBtn = el('submitBtn');
+    const resetBtn = el('resetBtn');
+
+    function setMsg(text, type='') {
+      msgEl.textContent = text;
+      msgEl.className = 'msg ' + (type === 'ok' ? 'ok' : type === 'err' ? 'err' : '');
+    }
+
+    function normalize(s) {
+      return (s || '').trim().toUpperCase();
+    }
+
+    // Validate that seq is a contiguous substring of base
+    function findSequenceIndex(base, seq) {
+      return base.indexOf(seq);
+    }
+
+    // Validate newWord uses the sequence as a single contiguous block,
+    // only adding letters to the start/end (not inside the seq).
+    function sequenceUsedAsBlock(newWord, seq) {
+      const i = newWord.indexOf(seq);
+      if (i === -1) return { ok: false };
+      // It’s okay to have any number of letters before (prefix) and after (suffix) the block.
+      // Inserting inside the block is impossible if we require the exact seq substring.
+      // If seq appears multiple times, we accept the first occurrence (simplest for MVP).
+      return { ok: true, indexInNew: i };
+    }
+
+    function isInnerSequence(base, startIndex, seqLen) {
+      if (startIndex === 0) return false; // touches first letter -> edge
+      if (startIndex + seqLen === base.length) return false; // touches last letter -> edge
+      return true;
+    }
+
+    function addTurnLog({seq, type, seqLen, bonus, pts, from, to}) {
+      const row = document.createElement('div');
+      row.className = 'turn';
+      const a = document.createElement('div');
+      a.textContent = `${from} →`;
+      const b = document.createElement('div');
+      b.textContent = `${seq} → ${to}`;
+      const c = document.createElement('div');
+      c.innerHTML = `<span class="pill ${type === 'INNER' ? 'inner' : 'edge'}">${type}</span> &nbsp; +${pts} pts`;
+      row.appendChild(a); row.appendChild(b); row.appendChild(c);
+      logEl.prepend(row);
+    }
+
+    function submitMove() {
+      const base = normalize(currentWord);
+      const seq = normalize(seqInput.value);
+      const newWord = normalize(newWordInput.value);
+
+      // Basic input checks
+      if (seq.length < 2) { setMsg("Sequence must be at least 2 letters.", 'err'); return; }
+      if (!/^[A-Z]+$/.test(seq)) { setMsg("Sequence must be letters only (A–Z).", 'err'); return; }
+      if (!/^[A-Z]+$/.test(newWord)) { setMsg("New word must be letters only (A–Z).", 'err'); return; }
+
+      // 1) Sequence must be contained contiguously in current word
+      const seqIndexInBase = findSequenceIndex(base, seq);
+      if (seqIndexInBase === -1) {
+        setMsg(`“${seq}” is not a contiguous sequence in ${base}.`, 'err');
+        return;
+      }
+
+      // 2) New word must include the exact sequence as a single contiguous block
+      const blockCheck = sequenceUsedAsBlock(newWord, seq);
+      if (!blockCheck.ok) {
+        setMsg(`New word must contain the exact block “${seq}” (no inserting letters inside).`, 'err');
+        return;
+      }
+
+      // 3) Score calculation
+      const inner = isInnerSequence(base, seqIndexInBase, seq.length);
+      const seqPoints = seq.length * (inner ? 2 : 1);
+
+      // Length bonus: +1 per letter if new word > previous word (not base word)
+      const lengthBonus = Math.max(0, newWord.length - prevWordLen);
+      const points = seqPoints + lengthBonus;
+
+      // Update state
+      score += points;
+      prevWordLen = newWord.length;
+      const fromWord = currentWord;
+      currentWord = newWord;
+
+      // Render
+      scoreEl.textContent = score;
+      currentWordEl.textContent = currentWord;
+      setMsg(`+${points} points (${inner ? 'Inner' : 'Edge'} ${seq.length}-letter sequence${lengthBonus ? `, +${lengthBonus} length bonus` : ''}).`, 'ok');
+
+      addTurnLog({
+        seq,
+        type: inner ? 'INNER' : 'EDGE',
+        seqLen: seq.length,
+        bonus: lengthBonus,
+        pts: points,
+        from: fromWord,
+        to: newWord
+      });
+
+      // Clear inputs
+      seqInput.value = '';
+      newWordInput.value = '';
+      seqInput.focus();
+    }
+
+    function resetGame() {
+      score = 0;
+      currentWord = "CORIANDER";
+      prevWordLen = currentWord.length;
+      scoreEl.textContent = score;
+      currentWordEl.textContent = currentWord;
+      logEl.innerHTML = '';
+      setMsg('Game reset. Pick a contiguous sequence from CORIANDER to begin.');
+      seqInput.value = '';
+      newWordInput.value = '';
+      seqInput.focus();
+    }
+
+    submitBtn.addEventListener('click', submitMove);
+    resetBtn.addEventListener('click', resetGame);
+    newWordInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submitMove();
+    });
+
+    // Initial message
+    setMsg('Pick a contiguous sequence from CORIANDER to begin.');
+  </script>
+</body>
+</html>

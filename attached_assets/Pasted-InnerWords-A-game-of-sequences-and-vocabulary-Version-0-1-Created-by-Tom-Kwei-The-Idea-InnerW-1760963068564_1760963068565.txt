@@ -1,0 +1,145 @@
+InnerWords
+A game of sequences and vocabulary
+
+Version 0.1 — Created by Tom Kwei
+
+🧠 The Idea
+InnerWords is a turn-based word game for two or more players.
+
+You begin with a single long word and take turns forming new
+words from it by using a continuous sequence of letters found
+within the current word.
+It’s simple to play, but rewards creativity, vocabulary, and forward
+thinking.
+
+⚙️ How to Play
+1. Start with a Word
+Choose a long, familiar English word of 8–12 letters — for
+example: OBNOXIOUS, DERMATOLOGY, or HAMBURGER.
+
+Players can agree on one together or randomise it using a
+dictionary or word generator.
+
+2. Take Turns
+On your turn:
+● Choose a contiguous sequence of letters from the current
+word.
+It must be at least two letters long, but can be any length, as
+long as the letters are consecutive.
+Example: from DERMATOLOGY, you could take DER, MAT,
+ATO, TO, OLOG, or OGY, etc.
+● Using that exact sequence, form a new valid English word
+by adding letters only to the start or end. You cannot insert
+letters inside the sequence or rearrange them.
+✅ Example: DERMATOLOGY → “MAT” → MATERIAL
+❌ Not allowed: DERMATOLOGY → “MAT” → MEATY (adds an
+E inside “MAT”)
+The newly created word becomes the next starting word for your
+opponent.
+
+🧮 Scoring
+Words are scored according to both where the chosen sequence
+comes from and how much the new word expands.
+Choosing a sequence that includes the first or last letter of the
+current word is called an Edge Sequence — each letter in that
+sequence scores 1 point. For example in DERMATOLOGY, DE,
+
+DERM, DERMA or GY,OGY, OLOGY would be considered Edge
+Sequences.
+If you instead take your sequence from within the word (not
+touching either end), it’s called an Inner Sequence, and each
+letter in that sequence scores 2 points.
+You also gain a Length Bonus if your new word is longer than
+the previous one. You earn 1 extra point for every additional
+letter in the new word. No bonus is applied if your word is equal in
+length to or shorter than your opponent’s.
+
+Example:
+CORRECTION → “REC” → RECONNAISSANCE
+● Player 1 earns 10 points:
+○ “REC” = 3 letters × 2 points (Inner Sequence) = 6
+points
+○ RECONNAISSANCE is 4 letters longer = +4 bonus
+○ Total = 10 points
+
+RECONNAISSANCE → “ANCE” → DISTANCE
+● Player 2 earns 4 points:
+
+○ “ANCE” = 4 letters × 1 point (Edge Sequence) = 4
+points
+○ DISTANCE is shorter = no length bonus
+
+○ Total = 4 points
+
+Type Description Points
+Inner
+Sequence
+
+Sequence doesn’t touch the
+first or last letter
+
+2 points per
+letter
+
+Edge
+Sequence
+
+Sequence includes the first or
+last letter
+
+1 point per
+letter
+
+Length
+Bonus
+
+New word is longer than the
+previous one
+
++1 point per
+extra letter
+
+Equal or
+Shorter
+
+No bonus —
+
+🔁 Winning the Game
+Play for a set number of rounds (commonly six) or to a target
+score (for example, first to 50 points).
+Keep a running total of each player’s score — the player with the
+highest total at the end wins.
+
+🎯 Strategy and Tactics
+Although InnerWords looks simple, it quickly develops into a
+game of real strategy and foresight.
+Because every new word sets up the next round, players must
+constantly think not only about the points they earn now, but also
+about the letters and sequences they leave behind for their
+opponent.
+Some key tactical approaches include:
+● Inner-first play: Target inner sequences whenever possible
+to maximise multipliers, even if it means shorter words.
+Smart players chain inner segments to control tempo.
+● Edge denial: Take sequences from the start or end of the
+word to remove accessible openings, forcing your opponent
+into weaker inner options.
+
+● Future blocking: Visualise what follow-up sequences might
+exist in your new word and play defensively to close them
+off.
+
+● Growth gambit: Extend shorter sequences into much longer
+words for hefty length bonuses, but beware — the longer the
+word, the more options you might hand over next turn.
+● Tempo control: Mix shorter, defensive plays with long, risky
+builds to unsettle opponents and shift the rhythm of play.
+
+● Theme chaining (optional rule): Some players try linking
+words semantically (e.g. “FIRE → IRON → FURNACE”) —
+not required, but it adds creativity and flair.
+
+At higher levels, InnerWords becomes a battle of pattern
+recognition, risk management, and lexical imagination —
+rewarding those who can see not just the next word, but the next
+three.
