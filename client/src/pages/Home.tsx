@@ -17,12 +17,16 @@ import { useAuth } from '@/hooks/useAuth';
 const AVAILABLE_WORDS = ['CORIANDER', 'CHEWINESS', 'MASTODON', 'SCUTTLING', 'REWINDER'];
 
 const EXAMPLES: Record<string, [string, string]> = {
-  CORIANDER: ["ARIA", "ORDAIN"],      // uses RIA / OR
-  CHEWINESS: ["CHEWING", "WINNER"],   // CHEW / WIN
-  MASTODON: ["PASTA", "TONIC"],       // AST / TON
-  SCUTTLING: ["CUTLET", "LINING"],    // CUT / LIN
-  REWINDER: ["WINDY", "ENDER"],       // WIND / END
+  // both spellings covered so we never crash
+  CORIANDER: ["ARIA", "ORDAIN"],
+  CORINADER: ["ARIA", "ORDAIN"],
+
+  CHEWINESS: ["CHEWING", "WINNER"],
+  MASTODON: ["PASTA", "TONIC"],
+  SCUTTLING: ["CUTLET", "LINING"],
+  REWINDER: ["WINDY", "ENDER"],
 };
+
 
 
 export default function Home() {
@@ -213,11 +217,19 @@ export default function Home() {
     setShowLeaderboard(true);
   };
 
-  const isPlaying = isTimerActive || turns.length > 0;
-  const examples = !isPlaying ? EXAMPLES[selectedWord] : undefined;
-  const mobileFriendlyPlaceholder = examples
-    ? `e.g. ${examples[0]}, ${examples[1]}`
-    : "Type your word";
+// ---- dynamic placeholder for GameInputs (safe) ----
+const isPlaying = Boolean(isTimerActive) || turns.length > 0;
+
+// normalize the key (in case of typos or variants)
+const key = (selectedWord || "").toUpperCase();
+const pair = !isPlaying ? EXAMPLES[key] : undefined;
+
+// Always produce a string
+const mobileFriendlyPlaceholder = pair
+  ? `e.g. ${pair[0]}, ${pair[1]}`
+  : (isPlaying ? "Type your word" : "Type your word");
+// --------------------------------------------
+
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 sm:p-6">
@@ -298,12 +310,13 @@ export default function Home() {
   {/* Inputs FIRST on mobile, SECOND on desktop */}
   <div className="order-2 md:order-3">
     <GameInputs
-      newWord={newWord}
+  newWord={newWord}
   onNewWordChange={setNewWord}
   onSubmit={handleSubmit}
   disabled={isGameOver}
   label="Your Word"
   placeholder={mobileFriendlyPlaceholder}
+/>
     />
     <GameFooter
       onReset={handleReset}
