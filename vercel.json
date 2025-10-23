@@ -1,12 +1,8 @@
 {
-  "builds": [
-    {
-      "src": "client/package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "dist/public" }
-    }
-  ],
-  "framework": null,
+  "framework": "vite",
+  "installCommand": "cd client && npm ci",
+  "buildCommand": "cd client && npm run build",
+  "outputDirectory": "client/dist/public",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
