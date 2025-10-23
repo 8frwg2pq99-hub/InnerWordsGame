@@ -4,11 +4,30 @@ interface CurrentWordDisplayProps {
 
 export default function CurrentWordDisplay({ word }: CurrentWordDisplayProps) {
   return (
-    <div 
-      className="text-6xl font-extrabold tracking-[0.15em] text-center py-8 px-4 rounded-lg bg-white border-2 border-border mb-6 shadow-sm text-black"
+    <div
+      className="
+        bg-white text-black border-2 border-border rounded-lg shadow-sm
+        flex items-center justify-center text-center
+        mx-auto my-6 px-4 py-6
+        max-w-[90vw] sm:max-w-[640px]
+        overflow-hidden
+      "
+      style={{
+        wordBreak: "break-word",
+        overflowWrap: "anywhere",
+      }}
       data-testid="text-current-word"
     >
-      {word}
+      <h1
+        className="
+          font-extrabold tracking-[0.1em]
+          text-[clamp(22px,8vw,48px)]
+          leading-tight
+          m-0
+        "
+      >
+        {word}
+      </h1>
     </div>
   );
 }
