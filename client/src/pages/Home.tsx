@@ -1,12 +1,8 @@
-<div className="text-xs text-muted-foreground mb-2">
-  Build: <code>canary-2025-10-23-1</code>
-</div>
 // client/src/pages/Home.tsx
 import { useState } from 'react';
 import GameHeader from '@/components/GameHeader';
 import CurrentWordDisplay from '@/components/CurrentWordDisplay';
-// NOTE: Rules now live in a modal, so the always-visible GameInstructions import is removed.
-// import GameInstructions from '@/components/GameInstructions';
+import { InstructionsBody } from '@/components/GameInstructions';
 import GameInputs from '@/components/GameInputs';
 import GameFooter from '@/components/GameFooter';
 import FeedbackMessage from '@/components/FeedbackMessage';
@@ -56,7 +52,6 @@ export default function Home() {
       for (let j = i + 2; j <= base.length; j++) {
         const seq = base.substring(i, j);
         const indexInWord = word.indexOf(seq);
-
         if (indexInWord !== -1 && seq.length > longestSeq.length) {
           longestSeq = seq;
           longestIndexBase = i;
@@ -64,14 +59,8 @@ export default function Home() {
         }
       }
     }
-
     if (longestSeq.length < 2) return null;
-
-    return {
-      sequence: longestSeq,
-      indexInBase: longestIndexBase,
-      indexInWord: longestIndexWord
-    };
+    return { sequence: longestSeq, indexInBase: longestIndexBase, indexInWord: longestIndexWord };
   };
 
   const verifyWordStructure = (word: string, sequence: string, indexInWord: number): boolean => {
@@ -96,11 +85,10 @@ export default function Home() {
     }
 
     const result = findSequenceInWord(base, word);
-
     if (!result) {
       setMessage({
         text: `No contiguous sequence from ${base} found in ${word}. The new word must contain at least 2 consecutive letters from the current word.`,
-        type: 'error'
+        type: 'error',
       });
       return;
     }
@@ -110,7 +98,7 @@ export default function Home() {
     if (!verifyWordStructure(word, sequence, indexInWord)) {
       setMessage({
         text: `Letters cannot be inserted inside the sequence "${sequence}".`,
-        type: 'error'
+        type: 'error',
       });
       return;
     }
@@ -132,7 +120,7 @@ export default function Home() {
     const bonusText = lengthBonus ? `, +${lengthBonus} length bonus` : '';
     setMessage({
       text: `+${points} points (${inner ? 'Inner' : 'Edge'} ${sequence.length}-letter sequence: "${sequence}"${bonusText}).`,
-      type: 'success'
+      type: 'success',
     });
 
     setTurns([
@@ -144,9 +132,9 @@ export default function Home() {
         points,
         sequencePoints: seqPoints,
         lengthBonus,
-        totalScore: newScore
+        totalScore: newScore,
       },
-      ...turns
+      ...turns,
     ]);
 
     setCurrentWord(word);
@@ -177,9 +165,7 @@ export default function Home() {
   };
 
   const handleChangeWord = (word: string) => {
-    if (isTimerActive || isGameOver) {
-      return; // Don’t allow changing word during active game
-    }
+    if (isTimerActive || isGameOver) return; // Don’t allow changing during an active game
     setSelectedWord(word);
     setCurrentWord(word);
     setPrevWordLen(word.length);
@@ -191,23 +177,18 @@ export default function Home() {
 
   const handleCycleWord = () => {
     if (isTimerActive || isGameOver) return;
-
     const currentIndex = AVAILABLE_WORDS.indexOf(selectedWord);
     const nextIndex = (currentIndex + 1) % AVAILABLE_WORDS.length;
-    const nextWord = AVAILABLE_WORDS[nextIndex];
-    handleChangeWord(nextWord);
+    handleChangeWord(AVAILABLE_WORDS[nextIndex]);
   };
 
-  const handleViewLeaderboard = () => {
-    setShowLeaderboard(true);
-  };
+  const handleViewLeaderboard = () => setShowLeaderboard(true);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-2xl bg-card border border-card-border rounded-xl p-8 shadow-xl">
-        {/* ===== Top Bar ===== */}
+        {/* Top Bar */}
         <div className="flex items-center justify-between mb-6 pb-6 border-b border-border">
-          {/* Left: Leaderboard */}
           <div className="flex items-center gap-3">
             <Button
               onClick={handleViewLeaderboard}
@@ -220,7 +201,6 @@ export default function Home() {
             </Button>
           </div>
 
-          {/* Right: Rules Button (replaces Login) */}
           <div className="flex items-center gap-2">
             <Button
               onClick={() => setShowRules(true)}
@@ -233,56 +213,71 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ===== Main Stack ===== */}
-        <GameHeader score={score} />
+        {/* Main stack */}
+        <div className="flex flex-col">
+          {/* 1. Header + score */}
+          <div>
+            <GameHeader score={score} />
+          </div>
 
-        <div className="mb-4">
-          <GameTimer isActive={isTimerActive} onTimeUp={handleTimeUp} duration={60} />
+          {/* 2. Timer */}
+          <div className="mb-4">
+            <GameTimer isActive={isTimerActive} onTimeUp={handleTimeUp} duration={60} />
+          </div>
+
+          {/* 3. Big word */}
+          <div>
+            <CurrentWordDisplay word={currentWord} />
+          </div>
+
+          {/* 4. Change/New word */}
+          <div className="flex items-center gap-3 mb-6 justify-center">
+            <Button
+              onClick={handleCycleWord}
+              variant="outline"
+              size="lg"
+              disabled={isTimerActive || isGameOver}
+              data-testid="button-new-word"
+              className="text-base font-semibold px-8 gap-2 w-full max-w-[380px]"
+            >
+              <RefreshCw className="h-5 w-5" />
+              New Word
+            </Button>
+          </div>
+
+          {/* 5. Inputs */}
+          <div>
+            <GameInputs
+              newWord={newWord}
+              onNewWordChange={setNewWord}
+              onSubmit={handleSubmit}
+              disabled={isGameOver}
+            />
+          </div>
+
+          {/* 6. Footer (submit/reset/end-run) */}
+          <div>
+            <GameFooter
+              onReset={handleReset}
+              onEndRun={handleEndRun}
+              isGameActive={isTimerActive && !isGameOver}
+            />
+          </div>
+
+          {/* Feedback + Turn log */}
+          <div>
+            <FeedbackMessage message={message.text} type={message.type} />
+            <TurnLog turns={turns} />
+          </div>
+
+          {/* Copyright */}
+          <footer className="mt-8 pt-4 border-t border-border text-center text-sm text-muted-foreground">
+            Created by Tom Kwei © 2025.
+          </footer>
         </div>
-
-        <CurrentWordDisplay word={currentWord} />
-
-        {/* Change/New Word */}
-        <div className="flex items-center gap-3 mb-6 justify-center">
-          <Button
-            onClick={handleCycleWord}
-            variant="outline"
-            size="lg"
-            disabled={isTimerActive || isGameOver}
-            data-testid="button-new-word"
-            className="text-base font-semibold px-8 gap-2 w-full max-w-[380px]"
-          >
-            <RefreshCw className="h-5 w-5" />
-            New Word
-          </Button>
-        </div>
-
-        {/* Input + Submit */}
-        <GameInputs
-          newWord={newWord}
-          onNewWordChange={setNewWord}
-          onSubmit={handleSubmit}
-          disabled={isGameOver}
-        />
-
-        {/* Reset / End Run */}
-        <GameFooter
-          onReset={handleReset}
-          onEndRun={handleEndRun}
-          isGameActive={isTimerActive && !isGameOver}
-        />
-
-        {/* Feedback + Turn log */}
-        <FeedbackMessage message={message.text} type={message.type} />
-        <TurnLog turns={turns} />
-
-        {/* Footer */}
-        <footer className="mt-8 pt-4 border-t border-border text-center text-sm text-muted-foreground">
-          Created by Tom Kwei © 2025.
-        </footer>
       </div>
 
-      {/* ===== Game Over Summary Modal ===== */}
+      {/* Game over summary */}
       {isGameOver && (
         <GameOverSummary
           score={score}
@@ -292,7 +287,30 @@ export default function Home() {
         />
       )}
 
-      {/* ===== Leaderboard Modal ===== */}
+      {/* Rules modal */}
+      {showRules && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-xl w-full max-w-2xl p-6 sm:p-8 shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl sm:text-3xl font-bold">How to Play</h2>
+              <Button
+                onClick={() => setShowRules(false)}
+                variant="ghost"
+                size="icon"
+                className="shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            <InstructionsBody />
+            <div className="mt-6 flex justify-end">
+              <Button onClick={() => setShowRules(false)}>Got it</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Leaderboard modal */}
       {showLeaderboard && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6 z-50 overflow-y-auto">
           <div className="bg-card border-2 border-primary rounded-xl p-8 max-w-2xl w-full my-8 shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -313,58 +331,7 @@ export default function Home() {
                 <X className="w-5 h-5" />
               </Button>
             </div>
-
             <Leaderboard startingWord={selectedWord} />
-          </div>
-        </div>
-      )}
-
-      {/* ===== Rules Modal ===== */}
-      {showRules && (
-        <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6 z-50 overflow-y-auto"
-          onClick={() => setShowRules(false)}
-        >
-          <div
-            className="bg-card border-2 border-primary rounded-xl p-6 max-w-2xl w-full shadow-2xl relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold">📘 Game Rules</h2>
-              <Button
-                onClick={() => setShowRules(false)}
-                variant="ghost"
-                size="icon"
-                data-testid="button-close-rules"
-              >
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
-
-            <div className="text-base leading-relaxed space-y-4">
-              <p>
-                Pick a continuous sequence of at least two letters from the word above.
-                Build that sequence into a new word by adding letters only to the start
-                and/or end — never the middle.
-              </p>
-
-              <p>
-                ⭐ If your sequence touches the first or last letter of the original
-                word, you'll score <b>1 point per letter</b>.{' '}
-                💎 If it's hidden entirely within — a bleh <i>InnerWord</i> — you'll
-                earn <b>2 points per letter</b> instead.
-              </p>
-
-              <p>
-                📈 You'll also gain <b>1 bonus point for every extra letter</b> your
-                new word adds compared to the last one.
-              </p>
-
-              <p>
-                ⏱️ You have <b>90 seconds</b> to score as many points as you can.
-                Good luck!
-              </p>
-            </div>
           </div>
         </div>
       )}
