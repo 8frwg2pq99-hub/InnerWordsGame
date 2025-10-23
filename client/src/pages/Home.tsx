@@ -1,30 +1,30 @@
 // client/src/pages/Home.tsx
-import { useState } from 'react';
-import GameHeader from '@/components/GameHeader';
-import CurrentWordDisplay from '@/components/CurrentWordDisplay';
-import { InstructionsBody } from '@/components/GameInstructions';
-import GameInputs from '@/components/GameInputs';
-import GameFooter from '@/components/GameFooter';
-import FeedbackMessage from '@/components/FeedbackMessage';
-import TurnLog from '@/components/TurnLog';
-import GameTimer from '@/components/GameTimer';
-import GameOverSummary from '@/components/GameOverSummary';
-import Leaderboard from '@/components/Leaderboard';
-import { type TurnData } from '@/components/TurnLogItem';
-import { Button } from '@/components/ui/button';
-import { Trophy, X, RefreshCw } from 'lucide-react';
+import { useState } from "react";
+import GameHeader from "@/components/GameHeader";
+import CurrentWordDisplay from "@/components/CurrentWordDisplay";
+import { InstructionsBody } from "@/components/GameInstructions";
+import GameInputs from "@/components/GameInputs";
+import GameFooter from "@/components/GameFooter";
+import FeedbackMessage from "@/components/FeedbackMessage";
+import TurnLog from "@/components/TurnLog";
+import GameTimer from "@/components/GameTimer";
+import GameOverSummary from "@/components/GameOverSummary";
+import Leaderboard from "@/components/Leaderboard";
+import { type TurnData } from "@/components/TurnLogItem";
+import { Button } from "@/components/ui/button";
+import { Trophy, X, RefreshCw } from "lucide-react";
 
-const AVAILABLE_WORDS = ['CORIANDER', 'CHEWINESS', 'MASTODON', 'SCUTTLING', 'REWINDER'];
+const AVAILABLE_WORDS = ["CORIANDER", "CHEWINESS", "MASTODON", "SCUTTLING", "REWINDER"];
 
 export default function Home() {
   const [selectedWord, setSelectedWord] = useState(AVAILABLE_WORDS[0]);
   const [currentWord, setCurrentWord] = useState(selectedWord);
   const [score, setScore] = useState(0);
   const [prevWordLen, setPrevWordLen] = useState(selectedWord.length);
-  const [newWord, setNewWord] = useState('');
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' | 'info' }>({
-    text: '',
-    type: 'info',
+  const [newWord, setNewWord] = useState("");
+  const [message, setMessage] = useState<{ text: string; type: "success" | "error" | "info" }>({
+    text: "",
+    type: "info",
   });
   const [turns, setTurns] = useState<TurnData[]>([]);
   const [isTimerActive, setIsTimerActive] = useState(false);
@@ -44,7 +44,7 @@ export default function Home() {
     base: string,
     word: string
   ): { sequence: string; indexInBase: number; indexInWord: number } | null => {
-    let longestSeq = '';
+    let longestSeq = "";
     let longestIndexBase = -1;
     let longestIndexWord = -1;
 
@@ -63,7 +63,7 @@ export default function Home() {
     return { sequence: longestSeq, indexInBase: longestIndexBase, indexInWord: longestIndexWord };
   };
 
-  const verifyWordStructure = (word: string, sequence: string, indexInWord: number): boolean => {
+  const verifyWordStructure = (word: string, sequence: string, indexInWord: number) => {
     const prefix = word.substring(0, indexInWord);
     const suffix = word.substring(indexInWord + sequence.length);
     return word === prefix + sequence + suffix;
@@ -76,11 +76,11 @@ export default function Home() {
     const word = normalize(newWord);
 
     if (word.length < 2) {
-      setMessage({ text: 'New word must be at least 2 letters.', type: 'error' });
+      setMessage({ text: "New word must be at least 2 letters.", type: "error" });
       return;
     }
     if (!/^[A-Z]+$/.test(word)) {
-      setMessage({ text: 'New word must be letters only (A–Z).', type: 'error' });
+      setMessage({ text: "New word must be letters only (A–Z).", type: "error" });
       return;
     }
 
@@ -88,7 +88,7 @@ export default function Home() {
     if (!result) {
       setMessage({
         text: `No contiguous sequence from ${base} found in ${word}. The new word must contain at least 2 consecutive letters from the current word.`,
-        type: 'error',
+        type: "error",
       });
       return;
     }
@@ -98,12 +98,11 @@ export default function Home() {
     if (!verifyWordStructure(word, sequence, indexInWord)) {
       setMessage({
         text: `Letters cannot be inserted inside the sequence "${sequence}".`,
-        type: 'error',
+        type: "error",
       });
       return;
     }
 
-    // Start timer on first successful move
     if (!isTimerActive && turns.length === 0) {
       setIsTimerActive(true);
     }
@@ -117,10 +116,10 @@ export default function Home() {
     setScore(newScore);
     setPrevWordLen(word.length);
 
-    const bonusText = lengthBonus ? `, +${lengthBonus} length bonus` : '';
+    const bonusText = lengthBonus ? `, +${lengthBonus} length bonus` : "";
     setMessage({
-      text: `+${points} points (${inner ? 'Inner' : 'Edge'} ${sequence.length}-letter sequence: "${sequence}"${bonusText}).`,
-      type: 'success',
+      text: `+${points} points (${inner ? "Inner" : "Edge"} ${sequence.length}-letter sequence: "${sequence}"${bonusText}).`,
+      type: "success",
     });
 
     setTurns([
@@ -128,7 +127,7 @@ export default function Home() {
         from: currentWord,
         to: word,
         sequence,
-        type: inner ? 'INNER' : 'EDGE',
+        type: inner ? "INNER" : "EDGE",
         points,
         sequencePoints: seqPoints,
         lengthBonus,
@@ -138,41 +137,41 @@ export default function Home() {
     ]);
 
     setCurrentWord(word);
-    setNewWord('');
+    setNewWord("");
   };
 
   const handleTimeUp = () => {
     setIsGameOver(true);
     setIsTimerActive(false);
-    setMessage({ text: 'Time is up! Check out your final score above.', type: 'info' });
+    setMessage({ text: "Time is up! Check out your final score above.", type: "info" });
   };
 
   const handleReset = () => {
     setScore(0);
     setCurrentWord(selectedWord);
     setPrevWordLen(selectedWord.length);
-    setNewWord('');
+    setNewWord("");
     setTurns([]);
     setIsTimerActive(false);
     setIsGameOver(false);
-    setMessage({ text: '', type: 'info' });
+    setMessage({ text: "", type: "info" });
   };
 
   const handleEndRun = () => {
     setIsGameOver(true);
     setIsTimerActive(false);
-    setMessage({ text: 'Run ended. Check out your final score above.', type: 'info' });
+    setMessage({ text: "Run ended. Check out your final score above.", type: "info" });
   };
 
   const handleChangeWord = (word: string) => {
-    if (isTimerActive || isGameOver) return; // Don’t allow changing during an active game
+    if (isTimerActive || isGameOver) return;
     setSelectedWord(word);
     setCurrentWord(word);
     setPrevWordLen(word.length);
     setScore(0);
-    setNewWord('');
+    setNewWord("");
     setTurns([]);
-    setMessage({ text: '', type: 'info' });
+    setMessage({ text: "", type: "info" });
   };
 
   const handleCycleWord = () => {
@@ -215,22 +214,18 @@ export default function Home() {
 
         {/* Main stack */}
         <div className="flex flex-col">
-          {/* 1. Header + score */}
           <div>
             <GameHeader score={score} />
           </div>
 
-          {/* 2. Timer */}
           <div className="mb-4">
             <GameTimer isActive={isTimerActive} onTimeUp={handleTimeUp} duration={60} />
           </div>
 
-          {/* 3. Big word */}
           <div>
             <CurrentWordDisplay word={currentWord} />
           </div>
 
-          {/* 4. Change/New word */}
           <div className="flex items-center gap-3 mb-6 justify-center">
             <Button
               onClick={handleCycleWord}
@@ -245,7 +240,6 @@ export default function Home() {
             </Button>
           </div>
 
-          {/* 5. Inputs */}
           <div>
             <GameInputs
               newWord={newWord}
@@ -255,7 +249,6 @@ export default function Home() {
             />
           </div>
 
-          {/* 6. Footer (submit/reset/end-run) */}
           <div>
             <GameFooter
               onReset={handleReset}
@@ -264,20 +257,17 @@ export default function Home() {
             />
           </div>
 
-          {/* Feedback + Turn log */}
           <div>
             <FeedbackMessage message={message.text} type={message.type} />
             <TurnLog turns={turns} />
           </div>
 
-          {/* Copyright */}
           <footer className="mt-8 pt-4 border-t border-border text-center text-sm text-muted-foreground">
             Created by Tom Kwei © 2025.
           </footer>
         </div>
       </div>
 
-      {/* Game over summary */}
       {isGameOver && (
         <GameOverSummary
           score={score}
@@ -322,12 +312,7 @@ export default function Home() {
                   <p className="text-sm text-muted-foreground">{selectedWord}</p>
                 </div>
               </div>
-              <Button
-                onClick={() => setShowLeaderboard(false)}
-                variant="ghost"
-                size="icon"
-                data-testid="button-close-leaderboard"
-              >
+              <Button variant="ghost" size="icon" onClick={() => setShowLeaderboard(false)}>
                 <X className="w-5 h-5" />
               </Button>
             </div>
