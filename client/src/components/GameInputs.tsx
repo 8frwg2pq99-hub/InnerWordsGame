@@ -1,10 +1,12 @@
+import React from "react";
+
 type Props = {
   newWord: string;
   onNewWordChange: (v: string) => void;
   onSubmit: () => void;
   disabled?: boolean;
-  label?: string;                 // NEW
-  placeholder?: string;           // NEW
+  label?: string;
+  placeholder?: string;
 };
 
 export default function GameInputs({
@@ -12,11 +14,11 @@ export default function GameInputs({
   onNewWordChange,
   onSubmit,
   disabled,
-  label = "Your Word",            // NEW: default label
-  placeholder = "Type your word", // NEW: default placeholder
+  label = "Your Word",
+  placeholder = "E.g. ARIA, ORDAIN",
 }: Props) {
   return (
-    <div className="mt-4 text-center">
+    <div className="mt-6">
       <label className="block mb-2 text-sm md:text-base font-medium text-foreground">
         {label}
       </label>
@@ -27,22 +29,18 @@ export default function GameInputs({
         onChange={(e) => onNewWordChange(e.target.value)}
         placeholder={placeholder}
         disabled={disabled}
+        inputMode="text"
+        autoCapitalize="characters"
+        autoCorrect="off"
       />
 
-      <div className="mt-4 flex flex-col sm:flex-row justify-center gap-2">
+      <div className="mt-4 flex justify-center">
         <button
           onClick={onSubmit}
           disabled={disabled}
-          className="bg-primary text-primary-foreground font-semibold py-2 px-4 rounded-md hover:opacity-90 disabled:opacity-50"
+          className="bg-primary text-primary-foreground font-semibold py-2 px-4 rounded-md hover:opacity-90 disabled:opacity-50 w-full max-w-[380px]"
         >
           Submit
-        </button>
-        <button
-          type="button"
-          onClick={() => onNewWordChange('')}
-          className="border border-border text-foreground py-2 px-4 rounded-md hover:bg-muted"
-        >
-          Reset
         </button>
       </div>
     </div>

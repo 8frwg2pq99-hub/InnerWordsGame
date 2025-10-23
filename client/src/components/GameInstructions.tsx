@@ -1,25 +1,23 @@
-// client/src/components/GameInstructions.tsx
 import React from "react";
-
-/** Reusable body of the rules with emojis, bold/italics preserved */
 export function InstructionsBody() {
   return (
     <div className="space-y-4 text-sm sm:text-base leading-relaxed text-muted-foreground">
       <p>
-        Pick a <strong>continuous sequence</strong> of at least two letters from the
-        word above. Build it into a new word by adding letters only to the{" "}
+        Pick a <strong>continuous sequence</strong> of at least two letters from
+        the word above. Build it into a new word by adding letters only to the{" "}
         <em>start</em> and/or <em>end</em> — never the middle.
       </p>
 
       <p>
-        If your sequence touches the first or last letter of the original word, you’ll score{" "}
-        <strong>1 point per letter</strong> ⭐. If it’s hidden entirely within — a true{" "}
-        <strong>InnerWord</strong> — you’ll earn <strong>2 points per letter</strong> instead 💎.
+        If your sequence touches the first or last letter of the original word,
+        you’ll score <strong>1 point per letter</strong> ⭐. If it’s hidden
+        entirely within — a true <strong>InnerWord</strong> — you’ll earn{" "}
+        <strong>2 points per letter</strong> instead 💎.
       </p>
 
       <p>
-        You’ll also gain <strong>1 bonus point</strong> for every extra letter your new word adds
-        compared to the last one 📈.
+        You’ll also gain <strong>1 bonus point</strong> for every extra letter
+        your new word adds compared to the last 📈.
       </p>
 
       <p className="font-semibold">
@@ -28,11 +26,6 @@ export function InstructionsBody() {
     </div>
   );
 }
-
-/**
- * Optional default export. We’re hiding it by default because rules now live in the modal.
- * If some page still renders <GameInstructions/>, it won’t break.
- */
 export default function GameInstructions() {
   return null;
 }
