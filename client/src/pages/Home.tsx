@@ -41,7 +41,10 @@ export default function Home() {
     return true;
   };
 
-  const findSequenceInWord = (base: string, word: string): { sequence: string; indexInBase: number; indexInWord: number } | null => {
+  const findSequenceInWord = (
+    base: string,
+    word: string
+  ): { sequence: string; indexInBase: number; indexInWord: number } | null => {
     let longestSeq = '';
     let longestIndexBase = -1;
     let longestIndexWord = -1;
@@ -204,6 +207,9 @@ export default function Home() {
     setShowLeaderboard(true);
   };
 
+  // Simple, safe placeholder for now (can be made dynamic later)
+  const mobileFriendlyPlaceholder = "Type your word";
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-2xl bg-card border border-card-border rounded-xl p-8 shadow-xl">
@@ -261,7 +267,7 @@ export default function Home() {
 
         <CurrentWordDisplay word={currentWord} />
         
-        {/* New Word Button */}
+        {/* Change Word Button */}
         <div className="flex items-center gap-3 mb-6 justify-center">
           <Button
             onClick={handleCycleWord}
@@ -269,25 +275,33 @@ export default function Home() {
             size="lg"
             disabled={isTimerActive || isGameOver}
             data-testid="button-new-word"
-            className="text-base font-semibold px-8 gap-2"
+            className="text-base font-semibold px-8 gap-2 w-full max-w-[380px]"
           >
             <RefreshCw className="h-5 w-5" />
-            New Word
+            Change Word
           </Button>
         </div>
 
-        <GameInstructions />
+        {/* Inputs (Your Word + Submit) */}
         <GameInputs
           newWord={newWord}
           onNewWordChange={setNewWord}
           onSubmit={handleSubmit}
           disabled={isGameOver}
+          label="Your Word"
+          placeholder={mobileFriendlyPlaceholder}
         />
+
+        {/* Buttons (includes Reset and End Run) */}
         <GameFooter 
           onReset={handleReset} 
           onEndRun={handleEndRun}
           isGameActive={isTimerActive && !isGameOver}
         />
+
+        {/* Rules under the buttons */}
+        <GameInstructions />
+
         <FeedbackMessage message={message.text} type={message.type} />
         <TurnLog turns={turns} />
         
