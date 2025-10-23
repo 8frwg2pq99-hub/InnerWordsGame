@@ -189,51 +189,13 @@ export default function Home() {
           </div>
         </div>
 
-        <GameHeader score={score} />
+       <div className="w-full max-w-2xl bg-card border border-card-border rounded-xl p-8 shadow-xl">
+    {/* Auth Section ...etc... */}
+    <div className="flex flex-col">
+        ... ⬅ paste that whole block here
+    </div>
+</div>
 
-        <div className="mb-4">
-          <GameTimer isActive={isTimerActive} onTimeUp={handleTimeUp} duration={60} />
-        </div>
-
-        <CurrentWordDisplay word={currentWord} />
-
-        {/* New/Change Word button */}
-        <div className="flex items-center gap-3 mb-6 justify-center">
-          <Button
-            onClick={handleCycleWord}
-            variant="outline"
-            size="lg"
-            disabled={isTimerActive || isGameOver}
-            data-testid="button-new-word"
-            className="text-base font-semibold px-8 gap-2 w-full max-w-[380px]"
-          >
-            <RefreshCw className="h-5 w-5" />
-            Change Word 
-          </Button>
-        </div>
-
-        {/* === Your Word + Submit === */}
-        <GameInputs
-          newWord={newWord}
-          onNewWordChange={setNewWord}
-          onSubmit={handleSubmit}
-          disabled={isGameOver}
-          label="Your Word"
-          placeholder="Type your word"
-        />
-
-        {/* === Reset / End Run buttons === */}
-        <GameFooter
-          onReset={handleReset}
-          onEndRun={handleEndRun}
-          isGameActive={isTimerActive && !isGameOver}
-        />
-
-        {/* === Rules NOW BELOW the buttons === */}
-        <GameInstructions />
-
-        <FeedbackMessage message={message.text} type={message.type} />
-        <TurnLog turns={turns} />
 
         <footer className="mt-8 pt-4 border-t border-border text-center text-sm text-muted-foreground">
           Created by Tom Kwei © 2025.
