@@ -34,12 +34,8 @@ export default function Home() {
   const { user, isAuthenticated } = useAuth();
 
   const normalize = (s: string) => s.trim().toUpperCase();
-
-  const isInnerSequence = (base: string, startIndex: number, seqLen: number) => {
-    if (startIndex === 0) return false;
-    if (startIndex + seqLen === base.length) return false;
-    return true;
-  };
+  const isInnerSequence = (base: string, startIndex: number, seqLen: number) =>
+    !(startIndex === 0 || startIndex + seqLen === base.length);
 
   const findSequenceInWord = (
     base: string,
@@ -53,7 +49,6 @@ export default function Home() {
       for (let j = i + 2; j <= base.length; j++) {
         const seq = base.substring(i, j);
         const indexInWord = word.indexOf(seq);
-        
         if (indexInWord !== -1 && seq.length > longestSeq.length) {
           longestSeq = seq;
           longestIndexBase = i;
@@ -61,17 +56,11 @@ export default function Home() {
         }
       }
     }
-
     if (longestSeq.length < 2) return null;
-    
-    return {
-      sequence: longestSeq,
-      indexInBase: longestIndexBase,
-      indexInWord: longestIndexWord
-    };
+    return { sequence: longestSeq, indexInBase: longestIndexBase, indexInWord: longestIndexWord };
   };
 
-  const verifyWordStructure = (word: string, sequence: string, indexInWord: number): boolean => {
+  const verifyWordStructure = (word: string, sequence: string, indexInWord: number) => {
     const prefix = word.substring(0, indexInWord);
     const suffix = word.substring(indexInWord + sequence.length);
     return word === prefix + sequence + suffix;
@@ -79,7 +68,6 @@ export default function Home() {
 
   const handleSubmit = () => {
     if (isGameOver) return;
-
     const base = normalize(currentWord);
     const word = normalize(newWord);
 
@@ -93,29 +81,21 @@ export default function Home() {
     }
 
     const result = findSequenceInWord(base, word);
-    
     if (!result) {
-      setMessage({ 
-        text: `No contiguous sequence from ${base} found in ${word}. The new word must contain at least 2 consecutive letters from the current word.`, 
-        type: 'error' 
+      setMessage({
+        text: `No contiguous sequence from ${base} found in ${word}. The new word must contain at least 2 consecutive letters from the current word.`,
+        type: 'error'
       });
       return;
     }
 
     const { sequence, indexInBase, indexInWord } = result;
-
     if (!verifyWordStructure(word, sequence, indexInWord)) {
-      setMessage({ 
-        text: `Letters cannot be inserted inside the sequence "${sequence}".`, 
-        type: 'error' 
-      });
+      setMessage({ text: `Letters cannot be inserted inside the sequence "${sequence}".`, type: 'error' });
       return;
     }
 
-    // Start timer on first successful move
-    if (!isTimerActive && turns.length === 0) {
-      setIsTimerActive(true);
-    }
+    if (!isTimerActive && turns.length === 0) setIsTimerActive(true);
 
     const inner = isInnerSequence(base, indexInBase, sequence.length);
     const seqPoints = sequence.length * (inner ? 2 : 1);
@@ -125,24 +105,13 @@ export default function Home() {
 
     setScore(newScore);
     setPrevWordLen(word.length);
-    
-    const bonusText = lengthBonus ? `, +${lengthBonus} length bonus` : '';
-    setMessage({ 
-      text: `+${points} points (${inner ? 'Inner' : 'Edge'} ${sequence.length}-letter sequence: "${sequence}"${bonusText}).`, 
-      type: 'success' 
+    setMessage({
+      text: `+${points} points (${inner ? 'Inner' : 'Edge'} ${sequence.length}-letter sequence: "${sequence}"${lengthBonus ? `, +${lengthBonus} length bonus` : ''}).`,
+      type: 'success'
     });
 
     setTurns([
-      { 
-        from: currentWord, 
-        to: word, 
-        sequence, 
-        type: inner ? 'INNER' : 'EDGE', 
-        points,
-        sequencePoints: seqPoints,
-        lengthBonus,
-        totalScore: newScore
-      },
+      { from: currentWord, to: word, sequence, type: inner ? 'INNER' : 'EDGE', points, sequencePoints: seqPoints, lengthBonus, totalScore: newScore },
       ...turns
     ]);
 
@@ -174,9 +143,7 @@ export default function Home() {
   };
 
   const handleChangeWord = (word: string) => {
-    if (isTimerActive || isGameOver) {
-      return; // Don't allow changing word during active game
-    }
+    if (isTimerActive || isGameOver) return;
     setSelectedWord(word);
     setCurrentWord(word);
     setPrevWordLen(word.length);
@@ -188,86 +155,49 @@ export default function Home() {
 
   const handleCycleWord = () => {
     if (isTimerActive || isGameOver) return;
-    
     const currentIndex = AVAILABLE_WORDS.indexOf(selectedWord);
     const nextIndex = (currentIndex + 1) % AVAILABLE_WORDS.length;
-    const nextWord = AVAILABLE_WORDS[nextIndex];
-    handleChangeWord(nextWord);
+    handleChangeWord(AVAILABLE_WORDS[nextIndex]);
   };
 
-  const handleLogin = () => {
-    window.location.href = '/api/login';
-  };
-
-  const handleLogout = () => {
-    window.location.href = '/api/logout';
-  };
-
-  const handleViewLeaderboard = () => {
-    setShowLeaderboard(true);
-  };
-
-  // Simple, safe placeholder for now (can be made dynamic later)
-  const mobileFriendlyPlaceholder = "Type your word";
+  const handleLogin = () => { window.location.href = '/api/login'; };
+  const handleLogout = () => { window.location.href = '/api/logout'; };
+  const handleViewLeaderboard = () => { setShowLeaderboard(true); };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-2xl bg-card border border-card-border rounded-xl p-8 shadow-xl">
-        {/* Auth Section */}
+        {/* Top bar */}
         <div className="flex items-center justify-between mb-6 pb-6 border-b border-border">
           <div className="flex items-center gap-3">
-            <Button
-              onClick={handleViewLeaderboard}
-              variant="outline"
-              size="sm"
-              data-testid="button-view-leaderboard"
-            >
+            <Button onClick={handleViewLeaderboard} variant="outline" size="sm" data-testid="button-view-leaderboard">
               <Trophy className="w-4 h-4 mr-2" />
               Leaderboard
             </Button>
           </div>
-          
           <div className="flex items-center gap-2">
             {isAuthenticated && user ? (
               <>
                 <span className="text-sm text-muted-foreground">
                   {user.firstName || user.email?.split('@')[0] || 'Player'}
                 </span>
-                <Button
-                  onClick={handleLogout}
-                  variant="ghost"
-                  size="sm"
-                  data-testid="button-logout"
-                >
-                  Log Out
-                </Button>
+                <Button onClick={handleLogout} variant="ghost" size="sm" data-testid="button-logout">Log Out</Button>
               </>
             ) : (
-              <Button
-                onClick={handleLogin}
-                variant="outline"
-                size="sm"
-                data-testid="button-login"
-              >
-                Log In
-              </Button>
+              <Button onClick={handleLogin} variant="outline" size="sm" data-testid="button-login">Log In</Button>
             )}
           </div>
         </div>
 
         <GameHeader score={score} />
-        
+
         <div className="mb-4">
-          <GameTimer 
-            isActive={isTimerActive} 
-            onTimeUp={handleTimeUp}
-            duration={60}
-          />
+          <GameTimer isActive={isTimerActive} onTimeUp={handleTimeUp} duration={60} />
         </div>
 
         <CurrentWordDisplay word={currentWord} />
-        
-        {/* Change Word Button */}
+
+        {/* New/Change Word button */}
         <div className="flex items-center gap-3 mb-6 justify-center">
           <Button
             onClick={handleCycleWord}
@@ -278,42 +208,41 @@ export default function Home() {
             className="text-base font-semibold px-8 gap-2 w-full max-w-[380px]"
           >
             <RefreshCw className="h-5 w-5" />
-            Change Word
+            Change Word 
           </Button>
         </div>
 
-        {/* Inputs (Your Word + Submit) */}
+        {/* === Your Word + Submit === */}
         <GameInputs
           newWord={newWord}
           onNewWordChange={setNewWord}
           onSubmit={handleSubmit}
           disabled={isGameOver}
           label="Your Word"
-          placeholder={mobileFriendlyPlaceholder}
+          placeholder="Type your word"
         />
 
-        {/* Buttons (includes Reset and End Run) */}
-        <GameFooter 
-          onReset={handleReset} 
+        {/* === Reset / End Run buttons === */}
+        <GameFooter
+          onReset={handleReset}
           onEndRun={handleEndRun}
           isGameActive={isTimerActive && !isGameOver}
         />
 
-        {/* Rules under the buttons */}
+        {/* === Rules NOW BELOW the buttons === */}
         <GameInstructions />
 
         <FeedbackMessage message={message.text} type={message.type} />
         <TurnLog turns={turns} />
-        
-        {/* Copyright Footer */}
+
         <footer className="mt-8 pt-4 border-t border-border text-center text-sm text-muted-foreground">
           Created by Tom Kwei © 2025.
         </footer>
       </div>
 
       {isGameOver && (
-        <GameOverSummary 
-          score={score} 
+        <GameOverSummary
+          score={score}
           turns={turns}
           startingWord={selectedWord}
           onPlayAgain={handleReset}
@@ -331,16 +260,10 @@ export default function Home() {
                   <p className="text-sm text-muted-foreground">{selectedWord}</p>
                 </div>
               </div>
-              <Button
-                onClick={() => setShowLeaderboard(false)}
-                variant="ghost"
-                size="icon"
-                data-testid="button-close-leaderboard"
-              >
+              <Button onClick={() => setShowLeaderboard(false)} variant="ghost" size="icon" data-testid="button-close-leaderboard">
                 <X className="w-5 h-5" />
               </Button>
             </div>
-            
             <Leaderboard startingWord={selectedWord} />
           </div>
         </div>
