@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import GameHeader from '@/components/GameHeader';
 import CurrentWordDisplay from '@/components/CurrentWordDisplay';
-import GameInstructions from '@/components/GameInstructions';
+// NOTE: Rules now live in a modal, so the always-visible GameInstructions import is removed.
+// import GameInstructions from '@/components/GameInstructions';
 import GameInputs from '@/components/GameInputs';
 import GameFooter from '@/components/GameFooter';
 import FeedbackMessage from '@/components/FeedbackMessage';
@@ -13,7 +14,6 @@ import Leaderboard from '@/components/Leaderboard';
 import { type TurnData } from '@/components/TurnLogItem';
 import { Button } from '@/components/ui/button';
 import { Trophy, X, RefreshCw } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
 
 const AVAILABLE_WORDS = ['CORIANDER', 'CHEWINESS', 'MASTODON', 'SCUTTLING', 'REWINDER'];
 
@@ -31,8 +31,7 @@ export default function Home() {
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
-
-  const { user, isAuthenticated } = useAuth();
+  const [showRules, setShowRules] = useState(false);
 
   const normalize = (s: string) => s.trim().toUpperCase();
 
@@ -42,7 +41,10 @@ export default function Home() {
     return true;
   };
 
-  const findSequenceInWord = (base: string, word: string): { sequence: string; indexInBase: number; indexInWord: number } | null => {
+  const findSequenceInWord = (
+    base: string,
+    word: string
+  ): { sequence: string; indexInBase: number; indexInWord: number } | null => {
     let longestSeq = '';
     let longestIndexBase = -1;
     let longestIndexWord = -1;
@@ -193,14 +195,6 @@ export default function Home() {
     handleChangeWord(nextWord);
   };
 
-  const handleLogin = () => {
-    window.location.href = '/api/login';
-  };
-
-  const handleLogout = () => {
-    window.location.href = '/api/logout';
-  };
-
   const handleViewLeaderboard = () => {
     setShowLeaderboard(true);
   };
@@ -208,8 +202,9 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-2xl bg-card border border-card-border rounded-xl p-8 shadow-xl">
-        {/* Auth / Top Bar */}
+        {/* ===== Top Bar ===== */}
         <div className="flex items-center justify-between mb-6 pb-6 border-b border-border">
+          {/* Left: Leaderboard */}
           <div className="flex items-center gap-3">
             <Button
               onClick={handleViewLeaderboard}
@@ -222,103 +217,69 @@ export default function Home() {
             </Button>
           </div>
 
+          {/* Right: Rules Button (replaces Login) */}
           <div className="flex items-center gap-2">
-            {isAuthenticated && user ? (
-              <>
-                <span className="text-sm text-muted-foreground">
-                  {user.firstName || user.email?.split('@')[0] || 'Player'}
-                </span>
-                <Button
-                  onClick={handleLogout}
-                  variant="ghost"
-                  size="sm"
-                  data-testid="button-logout"
-                >
-                  Log In
-                </Button>
-              </>
-            ) : (
-              <Button
-                onClick={handleLogin}
-                variant="outline"
-                size="sm"
-                data-testid="button-login"
-              >
-                Log In
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* ===== MOBILE-FIRST STACK WITH EXPLICIT ORDER ===== */}
-        <div className="flex flex-col">
-          {/* 1. Header + score */}
-          <div className="order-1">
-            <GameHeader score={score} />
-          </div>
-
-          {/* 2. Timer */}
-          <div className="order-2 mb-4">
-            <GameTimer isActive={isTimerActive} onTimeUp={handleTimeUp} duration={60} />
-          </div>
-
-          {/* 3. Big white word */}
-          <div className="order-3">
-            <CurrentWordDisplay word={currentWord} />
-          </div>
-
-          {/* 4. New/Change Word button */}
-          <div className="order-4 flex items-center gap-3 mb-6 justify-center">
             <Button
-              onClick={handleCycleWord}
+              onClick={() => setShowRules(true)}
               variant="outline"
-              size="lg"
-              disabled={isTimerActive || isGameOver}
-              data-testid="button-new-word"
-              className="text-base font-semibold px-8 gap-2 w-full max-w-[380px]"
+              size="sm"
+              data-testid="button-show-rules"
             >
-              <RefreshCw className="h-5 w-5" />
-              New Word
+              📘 Rules
             </Button>
           </div>
-
-          {/* 5. Inputs (mobile before rules, desktop after rules) */}
-          <div className="order-5 lg:order-6">
-            <GameInputs
-              newWord={newWord}
-              onNewWordChange={setNewWord}
-              onSubmit={handleSubmit}
-              disabled={isGameOver}
-            />
-          </div>
-
-          {/* 6. Rules (mobile after inputs, desktop before inputs) */}
-          <div className="order-6 lg:order-5">
-            <GameInstructions />
-          </div>
-
-          {/* 7. Footer with Submit/Reset (single source of truth for Reset) */}
-          <div className="order-7">
-            <GameFooter
-              onReset={handleReset}
-              onEndRun={handleEndRun}
-              isGameActive={isTimerActive && !isGameOver}
-            />
-          </div>
-
-          {/* Feedback + Turn log */}
-          <div className="order-8">
-            <FeedbackMessage message={message.text} type={message.type} />
-            <TurnLog turns={turns} />
-          </div>
-
-          {/* Copyright */}
-          <footer className="order-9 mt-8 pt-4 border-t border-border text-center text-sm text-muted-foreground">
-            Created by Tom Kwei © 2025.
-          </footer>
         </div>
+
+        {/* ===== Main Stack ===== */}
+        <GameHeader score={score} />
+
+        <div className="mb-4">
+          <GameTimer isActive={isTimerActive} onTimeUp={handleTimeUp} duration={60} />
+        </div>
+
+        <CurrentWordDisplay word={currentWord} />
+
+        {/* Change/New Word */}
+        <div className="flex items-center gap-3 mb-6 justify-center">
+          <Button
+            onClick={handleCycleWord}
+            variant="outline"
+            size="lg"
+            disabled={isTimerActive || isGameOver}
+            data-testid="button-new-word"
+            className="text-base font-semibold px-8 gap-2 w-full max-w-[380px]"
+          >
+            <RefreshCw className="h-5 w-5" />
+            New Word
+          </Button>
+        </div>
+
+        {/* Input + Submit */}
+        <GameInputs
+          newWord={newWord}
+          onNewWordChange={setNewWord}
+          onSubmit={handleSubmit}
+          disabled={isGameOver}
+        />
+
+        {/* Reset / End Run */}
+        <GameFooter
+          onReset={handleReset}
+          onEndRun={handleEndRun}
+          isGameActive={isTimerActive && !isGameOver}
+        />
+
+        {/* Feedback + Turn log */}
+        <FeedbackMessage message={message.text} type={message.type} />
+        <TurnLog turns={turns} />
+
+        {/* Footer */}
+        <footer className="mt-8 pt-4 border-t border-border text-center text-sm text-muted-foreground">
+          Created by Tom Kwei © 2025.
+        </footer>
       </div>
 
+      {/* ===== Game Over Summary Modal ===== */}
       {isGameOver && (
         <GameOverSummary
           score={score}
@@ -328,6 +289,7 @@ export default function Home() {
         />
       )}
 
+      {/* ===== Leaderboard Modal ===== */}
       {showLeaderboard && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6 z-50 overflow-y-auto">
           <div className="bg-card border-2 border-primary rounded-xl p-8 max-w-2xl w-full my-8 shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -350,6 +312,56 @@ export default function Home() {
             </div>
 
             <Leaderboard startingWord={selectedWord} />
+          </div>
+        </div>
+      )}
+
+      {/* ===== Rules Modal ===== */}
+      {showRules && (
+        <div
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6 z-50 overflow-y-auto"
+          onClick={() => setShowRules(false)}
+        >
+          <div
+            className="bg-card border-2 border-primary rounded-xl p-6 max-w-2xl w-full shadow-2xl relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold">📘 Game Rules</h2>
+              <Button
+                onClick={() => setShowRules(false)}
+                variant="ghost"
+                size="icon"
+                data-testid="button-close-rules"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            <div className="text-base leading-relaxed space-y-4">
+              <p>
+                Pick a continuous sequence of at least two letters from the word above.
+                Build that sequence into a new word by adding letters only to the start
+                and/or end — never the middle.
+              </p>
+
+              <p>
+                ⭐ If your sequence touches the first or last letter of the original
+                word, you'll score <b>1 point per letter</b>.{' '}
+                💎 If it's hidden entirely within — a true <i>InnerWord</i> — you'll
+                earn <b>2 points per letter</b> instead.
+              </p>
+
+              <p>
+                📈 You'll also gain <b>1 bonus point for every extra letter</b> your
+                new word adds compared to the last one.
+              </p>
+
+              <p>
+                ⏱️ You have <b>90 seconds</b> to score as many points as you can.
+                Good luck!
+              </p>
+            </div>
           </div>
         </div>
       )}
