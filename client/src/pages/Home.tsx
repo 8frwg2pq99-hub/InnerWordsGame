@@ -1,3 +1,6 @@
+<div className="text-xs text-muted-foreground mb-2">
+  Build: <code>canary-2025-10-23-1</code>
+</div>
 // client/src/pages/Home.tsx
 import { useState } from 'react';
 import GameHeader from '@/components/GameHeader';
