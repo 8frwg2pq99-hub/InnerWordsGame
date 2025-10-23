@@ -16,6 +16,15 @@ import { useAuth } from '@/hooks/useAuth';
 
 const AVAILABLE_WORDS = ['CORIANDER', 'CHEWINESS', 'MASTODON', 'SCUTTLING', 'REWINDER'];
 
+const EXAMPLES: Record<string, [string, string]> = {
+  CORIANDER: ["ARIA", "ORDAIN"],      // uses RIA / OR
+  CHEWINESS: ["CHEWING", "WINNER"],   // CHEW / WIN
+  MASTODON: ["PASTA", "TONIC"],       // AST / TON
+  SCUTTLING: ["CUTLET", "LINING"],    // CUT / LIN
+  REWINDER: ["WINDY", "ENDER"],       // WIND / END
+};
+
+
 export default function Home() {
   const [selectedWord, setSelectedWord] = useState(AVAILABLE_WORDS[0]);
   const [currentWord, setCurrentWord] = useState(selectedWord);
@@ -204,6 +213,12 @@ export default function Home() {
     setShowLeaderboard(true);
   };
 
+  const isPlaying = isTimerActive || turns.length > 0;
+  const examples = !isPlaying ? EXAMPLES[selectedWord] : undefined;
+  const mobileFriendlyPlaceholder = examples
+    ? `e.g. ${examples[0]}, ${examples[1]}`
+    : "Type your word";
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-2xl bg-card border border-card-border rounded-xl p-8 shadow-xl">
@@ -284,9 +299,11 @@ export default function Home() {
   <div className="order-2 md:order-3">
     <GameInputs
       newWord={newWord}
-      onNewWordChange={setNewWord}
-      onSubmit={handleSubmit}
-      disabled={isGameOver}
+  onNewWordChange={setNewWord}
+  onSubmit={handleSubmit}
+  disabled={isGameOver}
+  label="Your Word"
+  placeholder={mobileFriendlyPlaceholder}
     />
     <GameFooter
       onReset={handleReset}
