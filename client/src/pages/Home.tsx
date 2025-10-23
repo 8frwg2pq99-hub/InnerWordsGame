@@ -1,7 +1,7 @@
+import RulesPanel from '@/components/RulesPanel';
 import { useState } from 'react';
 import GameHeader from '@/components/GameHeader';
 import CurrentWordDisplay from '@/components/CurrentWordDisplay';
-import GameInstructions from '@/components/GameInstructions';
 import GameInputs from '@/components/GameInputs';
 import GameFooter from '@/components/GameFooter';
 import FeedbackMessage from '@/components/FeedbackMessage';
@@ -276,12 +276,13 @@ export default function Home() {
           </Button>
         </div>
 
-        <GameInstructions />
-        <GameInputs
-          newWord={newWord}
-          onNewWordChange={setNewWord}
-          onSubmit={handleSubmit}
-          disabled={isGameOver}
+       <RulesPanel />
+
+<GameInputs
+  newWord={newWord}
+  onNewWordChange={setNewWord}
+  onSubmit={handleSubmit}
+  disabled={isGameOver}
         />
         <GameFooter 
           onReset={handleReset} 
