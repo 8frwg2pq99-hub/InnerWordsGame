@@ -348,7 +348,7 @@ export default function Home() {
               <p>
                 ⭐ If your sequence touches the first or last letter of the original
                 word, you'll score <b>1 point per letter</b>.{' '}
-                💎 If it's hidden entirely within — a true <i>InnerWord</i> — you'll
+                💎 If it's hidden entirely within — a bleh <i>InnerWord</i> — you'll
                 earn <b>2 points per letter</b> instead.
               </p>
 
