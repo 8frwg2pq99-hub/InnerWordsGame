@@ -272,23 +272,35 @@ export default function Home() {
             className="text-base font-semibold px-8 gap-2"
           >
             <RefreshCw className="h-5 w-5" />
-            New Word
+            Change Word
           </Button>
         </div>
 
        <RulesPanel />
 
-<GameInputs
-  newWord={newWord}
-  onNewWordChange={setNewWord}
-  onSubmit={handleSubmit}
-  disabled={isGameOver}
-        />
-        <GameFooter 
-          onReset={handleReset} 
-          onEndRun={handleEndRun}
-          isGameActive={isTimerActive && !isGameOver}
-        />
+{/* Mobile-first reorder: Inputs above Rules on mobile; Rules above Inputs on desktop */}
+<div className="flex flex-col gap-3 md:gap-6">
+  {/* Inputs FIRST on mobile, SECOND on desktop */}
+  <div className="order-2 md:order-3">
+    <GameInputs
+      newWord={newWord}
+      onNewWordChange={setNewWord}
+      onSubmit={handleSubmit}
+      disabled={isGameOver}
+    />
+    <GameFooter
+      onReset={handleReset}
+      onEndRun={handleEndRun}
+      isGameActive={isTimerActive && !isGameOver}
+    />
+  </div>
+
+  {/* Rules SECOND on mobile, FIRST on desktop */}
+  <div className="order-3 md:order-2">
+    <GameInstructions />
+  </div>
+</div>
+
         <FeedbackMessage message={message.text} type={message.type} />
         <TurnLog turns={turns} />
         
