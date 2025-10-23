@@ -1,3 +1,4 @@
+// client/src/pages/Home.tsx
 import { useState } from 'react';
 import GameHeader from '@/components/GameHeader';
 import CurrentWordDisplay from '@/components/CurrentWordDisplay';
@@ -30,17 +31,18 @@ export default function Home() {
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
-  
+
   const { user, isAuthenticated } = useAuth();
 
   const normalize = (s: string) => s.trim().toUpperCase();
-  const isInnerSequence = (base: string, startIndex: number, seqLen: number) =>
-    !(startIndex === 0 || startIndex + seqLen === base.length);
 
-  const findSequenceInWord = (
-    base: string,
-    word: string
-  ): { sequence: string; indexInBase: number; indexInWord: number } | null => {
+  const isInnerSequence = (base: string, startIndex: number, seqLen: number) => {
+    if (startIndex === 0) return false;
+    if (startIndex + seqLen === base.length) return false;
+    return true;
+  };
+
+  const findSequenceInWord = (base: string, word: string): { sequence: string; indexInBase: number; indexInWord: number } | null => {
     let longestSeq = '';
     let longestIndexBase = -1;
     let longestIndexWord = -1;
@@ -49,6 +51,7 @@ export default function Home() {
       for (let j = i + 2; j <= base.length; j++) {
         const seq = base.substring(i, j);
         const indexInWord = word.indexOf(seq);
+
         if (indexInWord !== -1 && seq.length > longestSeq.length) {
           longestSeq = seq;
           longestIndexBase = i;
@@ -56,11 +59,17 @@ export default function Home() {
         }
       }
     }
+
     if (longestSeq.length < 2) return null;
-    return { sequence: longestSeq, indexInBase: longestIndexBase, indexInWord: longestIndexWord };
+
+    return {
+      sequence: longestSeq,
+      indexInBase: longestIndexBase,
+      indexInWord: longestIndexWord
+    };
   };
 
-  const verifyWordStructure = (word: string, sequence: string, indexInWord: number) => {
+  const verifyWordStructure = (word: string, sequence: string, indexInWord: number): boolean => {
     const prefix = word.substring(0, indexInWord);
     const suffix = word.substring(indexInWord + sequence.length);
     return word === prefix + sequence + suffix;
@@ -68,6 +77,7 @@ export default function Home() {
 
   const handleSubmit = () => {
     if (isGameOver) return;
+
     const base = normalize(currentWord);
     const word = normalize(newWord);
 
@@ -81,6 +91,7 @@ export default function Home() {
     }
 
     const result = findSequenceInWord(base, word);
+
     if (!result) {
       setMessage({
         text: `No contiguous sequence from ${base} found in ${word}. The new word must contain at least 2 consecutive letters from the current word.`,
@@ -90,12 +101,19 @@ export default function Home() {
     }
 
     const { sequence, indexInBase, indexInWord } = result;
+
     if (!verifyWordStructure(word, sequence, indexInWord)) {
-      setMessage({ text: `Letters cannot be inserted inside the sequence "${sequence}".`, type: 'error' });
+      setMessage({
+        text: `Letters cannot be inserted inside the sequence "${sequence}".`,
+        type: 'error'
+      });
       return;
     }
 
-    if (!isTimerActive && turns.length === 0) setIsTimerActive(true);
+    // Start timer on first successful move
+    if (!isTimerActive && turns.length === 0) {
+      setIsTimerActive(true);
+    }
 
     const inner = isInnerSequence(base, indexInBase, sequence.length);
     const seqPoints = sequence.length * (inner ? 2 : 1);
@@ -105,13 +123,24 @@ export default function Home() {
 
     setScore(newScore);
     setPrevWordLen(word.length);
+
+    const bonusText = lengthBonus ? `, +${lengthBonus} length bonus` : '';
     setMessage({
-      text: `+${points} points (${inner ? 'Inner' : 'Edge'} ${sequence.length}-letter sequence: "${sequence}"${lengthBonus ? `, +${lengthBonus} length bonus` : ''}).`,
+      text: `+${points} points (${inner ? 'Inner' : 'Edge'} ${sequence.length}-letter sequence: "${sequence}"${bonusText}).`,
       type: 'success'
     });
 
     setTurns([
-      { from: currentWord, to: word, sequence, type: inner ? 'INNER' : 'EDGE', points, sequencePoints: seqPoints, lengthBonus, totalScore: newScore },
+      {
+        from: currentWord,
+        to: word,
+        sequence,
+        type: inner ? 'INNER' : 'EDGE',
+        points,
+        sequencePoints: seqPoints,
+        lengthBonus,
+        totalScore: newScore
+      },
       ...turns
     ]);
 
@@ -143,7 +172,9 @@ export default function Home() {
   };
 
   const handleChangeWord = (word: string) => {
-    if (isTimerActive || isGameOver) return;
+    if (isTimerActive || isGameOver) {
+      return; // Don’t allow changing word during active game
+    }
     setSelectedWord(word);
     setCurrentWord(word);
     setPrevWordLen(word.length);
@@ -155,51 +186,137 @@ export default function Home() {
 
   const handleCycleWord = () => {
     if (isTimerActive || isGameOver) return;
+
     const currentIndex = AVAILABLE_WORDS.indexOf(selectedWord);
     const nextIndex = (currentIndex + 1) % AVAILABLE_WORDS.length;
-    handleChangeWord(AVAILABLE_WORDS[nextIndex]);
+    const nextWord = AVAILABLE_WORDS[nextIndex];
+    handleChangeWord(nextWord);
   };
 
-  const handleLogin = () => { window.location.href = '/api/login'; };
-  const handleLogout = () => { window.location.href = '/api/logout'; };
-  const handleViewLeaderboard = () => { setShowLeaderboard(true); };
+  const handleLogin = () => {
+    window.location.href = '/api/login';
+  };
+
+  const handleLogout = () => {
+    window.location.href = '/api/logout';
+  };
+
+  const handleViewLeaderboard = () => {
+    setShowLeaderboard(true);
+  };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-2xl bg-card border border-card-border rounded-xl p-8 shadow-xl">
-        {/* Top bar */}
+        {/* Auth / Top Bar */}
         <div className="flex items-center justify-between mb-6 pb-6 border-b border-border">
           <div className="flex items-center gap-3">
-            <Button onClick={handleViewLeaderboard} variant="outline" size="sm" data-testid="button-view-leaderboard">
+            <Button
+              onClick={handleViewLeaderboard}
+              variant="outline"
+              size="sm"
+              data-testid="button-view-leaderboard"
+            >
               <Trophy className="w-4 h-4 mr-2" />
               Leaderboard
             </Button>
           </div>
+
           <div className="flex items-center gap-2">
             {isAuthenticated && user ? (
               <>
                 <span className="text-sm text-muted-foreground">
                   {user.firstName || user.email?.split('@')[0] || 'Player'}
                 </span>
-                <Button onClick={handleLogout} variant="ghost" size="sm" data-testid="button-logout">Log Out</Button>
+                <Button
+                  onClick={handleLogout}
+                  variant="ghost"
+                  size="sm"
+                  data-testid="button-logout"
+                >
+                  Log In
+                </Button>
               </>
             ) : (
-              <Button onClick={handleLogin} variant="outline" size="sm" data-testid="button-login">Log In</Button>
+              <Button
+                onClick={handleLogin}
+                variant="outline"
+                size="sm"
+                data-testid="button-login"
+              >
+                Log In
+              </Button>
             )}
           </div>
         </div>
 
-       <div className="w-full max-w-2xl bg-card border border-card-border rounded-xl p-8 shadow-xl">
-    {/* Auth Section ...etc... */}
-    <div className="flex flex-col">
-        ... ⬅ paste that whole block here
-    </div>
-</div>
+        {/* ===== MOBILE-FIRST STACK WITH EXPLICIT ORDER ===== */}
+        <div className="flex flex-col">
+          {/* 1. Header + score */}
+          <div className="order-1">
+            <GameHeader score={score} />
+          </div>
 
+          {/* 2. Timer */}
+          <div className="order-2 mb-4">
+            <GameTimer isActive={isTimerActive} onTimeUp={handleTimeUp} duration={60} />
+          </div>
 
-        <footer className="mt-8 pt-4 border-t border-border text-center text-sm text-muted-foreground">
-          Created by Tom Kwei © 2025.
-        </footer>
+          {/* 3. Big white word */}
+          <div className="order-3">
+            <CurrentWordDisplay word={currentWord} />
+          </div>
+
+          {/* 4. New/Change Word button */}
+          <div className="order-4 flex items-center gap-3 mb-6 justify-center">
+            <Button
+              onClick={handleCycleWord}
+              variant="outline"
+              size="lg"
+              disabled={isTimerActive || isGameOver}
+              data-testid="button-new-word"
+              className="text-base font-semibold px-8 gap-2 w-full max-w-[380px]"
+            >
+              <RefreshCw className="h-5 w-5" />
+              New Word
+            </Button>
+          </div>
+
+          {/* 5. Inputs (mobile before rules, desktop after rules) */}
+          <div className="order-5 lg:order-6">
+            <GameInputs
+              newWord={newWord}
+              onNewWordChange={setNewWord}
+              onSubmit={handleSubmit}
+              disabled={isGameOver}
+            />
+          </div>
+
+          {/* 6. Rules (mobile after inputs, desktop before inputs) */}
+          <div className="order-6 lg:order-5">
+            <GameInstructions />
+          </div>
+
+          {/* 7. Footer with Submit/Reset (single source of truth for Reset) */}
+          <div className="order-7">
+            <GameFooter
+              onReset={handleReset}
+              onEndRun={handleEndRun}
+              isGameActive={isTimerActive && !isGameOver}
+            />
+          </div>
+
+          {/* Feedback + Turn log */}
+          <div className="order-8">
+            <FeedbackMessage message={message.text} type={message.type} />
+            <TurnLog turns={turns} />
+          </div>
+
+          {/* Copyright */}
+          <footer className="order-9 mt-8 pt-4 border-t border-border text-center text-sm text-muted-foreground">
+            Created by Tom Kwei © 2025.
+          </footer>
+        </div>
       </div>
 
       {isGameOver && (
@@ -222,10 +339,16 @@ export default function Home() {
                   <p className="text-sm text-muted-foreground">{selectedWord}</p>
                 </div>
               </div>
-              <Button onClick={() => setShowLeaderboard(false)} variant="ghost" size="icon" data-testid="button-close-leaderboard">
+              <Button
+                onClick={() => setShowLeaderboard(false)}
+                variant="ghost"
+                size="icon"
+                data-testid="button-close-leaderboard"
+              >
                 <X className="w-5 h-5" />
               </Button>
             </div>
+
             <Leaderboard startingWord={selectedWord} />
           </div>
         </div>
