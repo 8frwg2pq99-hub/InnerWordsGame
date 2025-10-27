@@ -1,6 +1,19 @@
 {
-  "name": "innerwords-root",
+  "name": "innerwords",
   "private": true,
-  "version": "1.0.0"
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "preview": "vite preview --host"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0",
+    "esbuild": "^0.23.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
 }
-
